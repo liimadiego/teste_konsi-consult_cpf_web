@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dados Beneficiário</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Open+Sans&display=swap');
+
+    body {
+      font-family: 'Open Sans', sans-serif;
+      display: flex;
+      justify-content: center;
+      margin: 0;
+      padding-top: 50px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 30px;
+    }
+
+    th, td {
+      border: 1px solid #ddd;
+      padding: 8px;
+      text-align: left;
+      width: 50%;;
+    }
+
+    th {
+      background-color: #f2f2f2;
+    }
+
+    input{
+      font-family: 'Open Sans', sans-serif;
+    }
+
+  </style>
+</head>
+<body>
+  <div style="text-align: center; margin-top: 50px;">
+    <h1>Buscar Dados Beneficiário</h1>
+    <input type="text" id="beneficiaryInput" placeholder="Insira o CPF">
+    <button onclick="searchBeneficiaryData()">Buscar</button>
+    <div id="result"></div>
+
+    <script>
+      async function searchBeneficiaryData() {
+        const cpf = document.getElementById('beneficiaryInput').value;
+        const result_div = document.getElementById('result');
+
+        try {
+          let formatted_CPF = validateAndFormatCPF(cpf);
+          if(!!formatted_CPF){
+            const response = await fetch(`http://localhost:3333/${formatted_CPF}`, {
+              method: 'GET',
+              headers: {
+                'Content-Type': 'application/json'
+              },
+            });
+
+            const data = await response.json();
+            if (!!data.cpf) {
+              const table = createTable(data);
+              result_div.innerHTML = '';
+              result_div.appendChild(table);
+            } else {
+              result_div.innerHTML = `<p>Dados não encontrados para o CPF inserido</p>`;
+            }
+          }else{
+            result_div.innerHTML = `<p>CPF inválido</p>`;
+          }
+          
+        } catch (error) {
+          console.log(error)
+          result_div.innerHTML = `<p>Algo deu errado</p>`;
+        }
+      }
+
+      function createTable(data) {
+        const table = document.createElement('table');
+
+        if (!data || !data.data || !Array.isArray(data.data) || data.data.length === 0) {
+          const error_message = document.createElement('p');
+          error_message.textContent = 'Algo deu errado.';
+          return error_message;
+        }
+
+        const header_row = table.insertRow(0);
+
+        const beneficiary_number_header = document.createElement('th');
+        beneficiary_number_header.textContent = 'Numero Beneficio';
+        header_row.appendChild(beneficiary_number_header);
+
+        const benefit_type_code_header = document.createElement('th');
+        benefit_type_code_header.textContent = 'Codigo Tipo Beneficio';
+        header_row.appendChild(benefit_type_code_header);
+
+        for (const item of data.data) {
+          const row = table.insertRow();
+
+          const benefit_number_cell = row.insertCell();
+          benefit_number_cell.textContent = item.numero_beneficio;
+
+          const benefit_type_code_cell = row.insertCell();
+          benefit_type_code_cell.textContent = item.codigo_tipo_beneficio;
+        }
+
+        return table;
+      }
+
+      function validateAndFormatCPF(cpf) {
+        let cpf_nums = cpf.replace(/[^\d]/g, '');
+        if(cpf_nums.length === 11 && !isNaN(cpf_nums)){
+          const formatted_CPF = cpf_nums.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4');
+          return formatted_CPF;
+        }
+
+        return false;
+      }
+    </script>
+  </div>
+</body>
+</html>
