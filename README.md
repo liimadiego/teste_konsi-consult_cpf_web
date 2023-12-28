@@ -6,7 +6,7 @@
 
 ## Para iniciar o projeto
 
-Criar um arquivo .env e inserir as credencias e URL base da API externa.<br><br>
+Criar um arquivo .env e inserir URL base (usar .env.example).<br><br>
 Inicie o servidor<br>
 ~ npm run start<br><br>
 Acesse em http://localhost:3000/
